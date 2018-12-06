@@ -6,12 +6,7 @@ import {terser} from 'rollup-plugin-terser'
 import {uglify} from 'rollup-plugin-uglify'
 import pkg from './package.json'
 
-const defaultPlugins = [
-  resolve(),
-  babel({
-    exclude: 'node_modules/**',
-  }),
-]
+const defaultPlugins = [resolve(), babel()]
 
 export default [
   {
