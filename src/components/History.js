@@ -119,31 +119,18 @@ class History {
 
     // 若为删除操作
     if (isRemoving) {
-      // 若为单对象操作
-      if (!object.hasOwnProperty('_objects')) {
-        this.operations.push([object._id])
-        const target = this.objects.find(obj => {
-          return obj._id === object._id
+      this.operations.push(
+        object._objects.map(obj => {
+          return obj._id
+        }),
+      )
+      object._objects.forEach(obj => {
+        const target = this.objects.find(ob => {
+          return ob._id === obj._id
         })
         target.states.push(null)
         target.currentStateNumber++
-      }
-
-      // 否则为多对象操作
-      else {
-        this.operations.push(
-          object._objects.map(obj => {
-            return obj._id
-          }),
-        )
-        object._objects.forEach(obj => {
-          const target = this.objects.find(ob => {
-            return ob._id === obj._id
-          })
-          target.states.push(null)
-          target.currentStateNumber++
-        })
-      }
+      })
     }
     // 若为修改操作
     else {

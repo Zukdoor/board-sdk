@@ -56,11 +56,6 @@ class Board {
     canvas.on('object:modified', options => {
       this.history.addOperation(options.target)
     })
-
-    canvas.on('object:removed', options => {
-      this.history.addOperation(options.target, true)
-      console.log(options.target)
-    })
   }
 
   /**
@@ -76,9 +71,14 @@ class Board {
    */
   removeSelection() {
     const canvas = this.layerDraw
-    canvas.remove(...canvas.getActiveObjects())
+    const objects = canvas.getActiveObjects()
+    canvas.remove(...objects)
     canvas.discardActiveObject()
     canvas.requestRenderAll()
+    const operation = {
+      _objects: objects,
+    }
+    this.history.addOperation(operation, true)
   }
 
   /**
