@@ -1,4 +1,4 @@
-const rnds8 = new Uint8Array(16)
+let rnds8 = new Uint8Array(16)
 const getRandomValues =
   (typeof crypto != 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto)) ||
   (typeof msCrypto != 'undefined' &&
@@ -8,8 +8,11 @@ const getRandomValues =
  * @return {*}
  */
 function rng() {
-  getRandomValues(rnds8)
-  return rnds8
+  if (typeof process === 'undefined') {
+    getRandomValues(rnds8)
+    return rnds8
+  }
+  if (process.env.NODE_ENV === 'test') return (rnds8 = require('crypto').randomBytes(16))
 }
 
 const byteToHex = []

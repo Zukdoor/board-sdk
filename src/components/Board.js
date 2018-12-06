@@ -42,6 +42,7 @@ class Board {
     // })
 
     canvas.on('object:added', options => {
+      // console.log(options.target)
       if (
         this.history.objects.find(object => {
           return object._id === options.target._id
@@ -55,6 +56,11 @@ class Board {
     canvas.on('object:modified', options => {
       this.history.addOperation(options.target)
     })
+
+    canvas.on('object:removed', options => {
+      this.history.addOperation(options.target, true)
+      console.log(options.target)
+    })
   }
 
   /**
@@ -62,6 +68,17 @@ class Board {
    */
   clear() {
     this.layerDraw.clear()
+    this.history.clear()
+  }
+
+  /**
+   * 删除选中的元素
+   */
+  removeSelection() {
+    const canvas = this.layerDraw
+    canvas.remove(...canvas.getActiveObjects())
+    canvas.discardActiveObject()
+    canvas.requestRenderAll()
   }
 
   /**
