@@ -13,6 +13,11 @@
   <button id="save-button">Save</button>
   <button id="load-button">Load</button>
   <button id="clear-button">Clear</button>
+  <button id="export-button">Export</button>
+  <button id="undo-button">Undo</button>
+  <button id="redo-button">Redo</button>
+  <button id="remove-button">Remove</button>
+
 
   <script>
     var board = new BoardSDK.Board(document.getElementById('whiteboard'))
@@ -36,7 +41,22 @@
     clearButton.addEventListener('click', () => {
       board.clear()
     })
-    console.info(fabric)
+    var exportButton = document.getElementById('export-button')
+    exportButton.addEventListener('click', () => {
+      console.log(board.export())
+    })
+    var undoButton = document.getElementById('undo-button')
+    undoButton.addEventListener('click', () => {
+      board.undo()
+    })
+    var redoButton = document.getElementById('redo-button')
+    redoButton.addEventListener('click', () => {
+      board.redo()
+    })
+    var removeButton = document.getElementById('remove-button')
+    removeButton.addEventListener('click', () => {
+      board.removeSelection()
+    })
   </script>
 </body>
 
