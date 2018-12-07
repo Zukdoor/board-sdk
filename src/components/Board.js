@@ -38,11 +38,7 @@ class Board {
   setListeners() {
     const canvas = this.layerDraw
 
-    // canvas.on('mouse:down', options => {
-    // })
-
     canvas.on('object:added', options => {
-      // console.log(options.target)
       if (
         this.history.objects.find(object => {
           return object._id === options.target._id

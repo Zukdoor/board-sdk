@@ -134,8 +134,6 @@ class History {
     }
     // 若为修改操作
     else {
-      const transformMatrix = object.matrixCache.value
-
       // 若为单对象操作
       if (!object.hasOwnProperty('_objects')) {
         this.operations.push([object._id])
@@ -174,6 +172,7 @@ class History {
 
           // 因为同时编辑多个object时，每个object的top和left数值是根据group的变换矩阵进行计算的，
           // 所以这里需要反变换来得到object相对canvas的top和left数值
+          const transformMatrix = object.hasOwnProperty('matrixCache') ? object.matrixCache.value : [1, 0, 0, 1, 0, 0]
           const newPoint = fabric.util.transformPoint({x: newState.left, y: newState.top}, transformMatrix)
           newState.left = newPoint.x
           newState.top = newPoint.y

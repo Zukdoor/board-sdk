@@ -50,6 +50,8 @@ describe('Board', () => {
   it('can be cleared', () => {
     board.clear()
     board.layerDraw._objects.length.should.equal(0)
+    board.canUndo().should.equal(false)
+    board.canRedo().should.equal(false)
   })
 
   it('can be saved and then loaded', () => {
@@ -66,5 +68,60 @@ describe('Board', () => {
 
   it('can export to png', () => {
     board.export().should.equal(base64)
+  })
+
+  it('can undo and redo object creation', () => {
+    board.undo()
+    board.getObjects().length.should.equal(0)
+    board.redo()
+    board.layerDraw._objects[0].aCoords.tl.x.should.equal(170)
+  })
+
+  it('can undo and redo object removal', () => {
+    const sel = new fabric.ActiveSelection(board.layerDraw.getObjects(), {
+      canvas: board.layerDraw,
+    })
+    board.layerDraw.setActiveObject(sel)
+    board.removeSelection()
+    board.getObjects().length.should.equal(0)
+    board.undo()
+    board.layerDraw._objects[0].aCoords.tl.x.should.equal(170)
+    board.redo()
+    board.getObjects().length.should.equal(0)
+  })
+
+  it('can undo and redo single object modification', () => {
+    board.layerDraw._objects[0].left += 50
+    board.layerDraw._objects[0].setCoords()
+    board.layerDraw._objects[0].aCoords.tl.x.should.equal(220)
+    board.layerDraw.trigger('object:modified', {target: board.layerDraw._objects[0]})
+    board.undo()
+    board.layerDraw._objects[0].aCoords.tl.x.should.equal(170)
+    board.redo()
+    board.layerDraw._objects[0].aCoords.tl.x.should.equal(220)
+  })
+
+  it('can undo and redo multi-objects modification', () => {
+    board.layerDraw.add(
+      new fabric.Line([50, 100, 200, 200], {
+        left: 370,
+        top: 350,
+        stroke: 'red',
+      }),
+    )
+
+    const sel = new fabric.ActiveSelection(board.layerDraw.getObjects(), {
+      canvas: board.layerDraw,
+    })
+
+    // board.layerDraw.discardActiveObject()
+    sel.left += 50
+    board.layerDraw._objects[0].setCoords()
+    board.layerDraw._objects[0].aCoords.tl.x.should.equal(-175.5)
+    board.layerDraw.trigger('object:modified', {target: sel})
+    board.undo()
+    board.layerDraw._objects[0].aCoords.tl.x.should.equal(170)
+    board.redo()
+    board.layerDraw._objects[0].aCoords.tl.x.should.equal(-175.5)
   })
 })
