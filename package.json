@@ -40,6 +40,7 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "coverage": "nyc report --reporter=json",
     "dev": "rollup -c -w",
     "test": "NODE_ENV=test nyc mocha test/**/*.js --require @babel/register",
     "format": "prettier --write \"**/*.+(js|json|md)\"",
