@@ -146,6 +146,26 @@ class Board {
   export(format = 'png') {
     return this.layerDraw.toDataURL({format: format})
   }
+
+  /**
+   * 设置画布背景
+   * @param {string} color
+   * @example
+   * // 可以使用颜色名称
+   * board.setBackground('blue')
+   * // 可以使用16进制颜色
+   * board.setBackground('#0000FF')
+   * // 可以使用RGB
+   * board.setBackground('rgb(0, 0, 255)')
+   * // 可以使用RGBA
+   * board.setBackground('rgba(0, 0, 255, 0.3)')
+   * // 可以使用HSL
+   * board.setBackground('hsl(180, 100%, 50%)')
+   */
+  setBackground(color) {
+    this.layerDraw.backgroundColor = color
+    this.layerDraw.requestRenderAll()
+  }
 }
 
 export default Board

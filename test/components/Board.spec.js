@@ -124,4 +124,9 @@ describe('Board', () => {
     board.redo()
     board.layerDraw._objects[0].aCoords.tl.x.should.equal(-175.5)
   })
+
+  it('can set background color', () => {
+    board.setBackground('blue')
+    board.layerDraw.backgroundColor.should.equal('blue')
+  })
 })
