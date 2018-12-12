@@ -1,5 +1,6 @@
 import History from './History'
 import uuid from '../helpers/uuid'
+import {MODE} from '../constants/mode'
 
 const REMOVING = true
 
@@ -30,7 +31,11 @@ class Board {
       isDrawingMode: true,
     }
     this.layerDraw = new fabric.Canvas(node, props)
+    this.transLayer = new fabric.Canvas(node, props)
     this.history = new History()
+    this.mode = MODE.DRAWING
+    this.point = new fabric.Point(0, 0)
+    this.isCreatingShape = false
     this.setListeners()
   }
 
@@ -53,6 +58,63 @@ class Board {
 
     canvas.on('object:modified', options => {
       this.history.addOperation(options.target)
+    })
+
+    canvas.on('mouse:down', options => {
+      switch (this.mode) {
+        case MODE.DRAWING:
+          return
+        case MODE.LINE:
+          break
+        case MODE.RECT:
+          this.point.x = options.e.x
+          this.point.y = options.e.y
+          this.isCreatingShape = true
+          this.layerDraw._objects.push(null)
+          break
+        case MODE.CIRC:
+          break
+        default:
+          return
+      }
+    })
+
+    canvas.on('mouse:move', options => {
+      switch (this.mode) {
+        case MODE.DRAWING:
+          return
+        case MODE.LINE:
+          break
+        case MODE.RECT:
+          if (!this.isCreatingShape) return
+          const rect = this.createRect(new fabric.Point(options.e.x, options.e.y))
+          this.layerDraw._objects[this.layerDraw._objects.length - 1] = rect
+          this.layerDraw.requestRenderAll()
+          break
+        case MODE.CIRC:
+          break
+        default:
+          return
+      }
+    })
+
+    canvas.on('mouse:up', options => {
+      switch (this.mode) {
+        case MODE.DRAWING:
+          return
+        case MODE.LINE:
+          break
+        case MODE.RECT:
+          const rect = this.createRect(new fabric.Point(options.e.x, options.e.y))
+          this.layerDraw._objects.pop()
+          this.layerDraw.add(rect)
+          this.isCreatingShape = false
+          break
+        case MODE.CIRC:
+          break
+        default:
+          return
+      }
     })
   }
 
@@ -155,12 +217,15 @@ class Board {
    * @example
    * // 可以使用颜色名称
    * board.setBackground('blue')
+   * @example
    * // 可以使用16进制颜色
    * board.setBackground('#0000FF')
+   * @example
    * // 可以使用RGB
    * board.setBackground('rgb(0, 0, 255)')
-   * // 可以使用RGBA
+   * // 或者RGBA
    * board.setBackground('rgba(0, 0, 255, 0.3)')
+   * @example
    * // 可以使用HSL
    * board.setBackground('hsl(180, 100%, 50%)')
    */
@@ -174,6 +239,9 @@ class Board {
    */
   stopDrawing() {
     this.layerDraw.isDrawingMode = false
+    this.layerDraw.skipTargetFind = false
+    this.layerDraw.selection = true
+    this.mode = MODE.SELECT
   }
 
   /**
@@ -181,6 +249,35 @@ class Board {
    */
   startDrawing() {
     this.layerDraw.isDrawingMode = true
+    this.mode = MODE.DRAWING
+  }
+
+  /**
+   * 创建矩形
+   * @param {object} point 目标点
+   * @return {object} 创建的矩形
+   */
+  createRect(point) {
+    const rect = new fabric.Rect({
+      top: Math.min(this.point.y, point.y),
+      left: Math.min(this.point.x, point.x),
+      width: Math.abs(this.point.x - point.x),
+      height: Math.abs(this.point.y - point.y),
+      stroke: 'black',
+      strokeWidth: 2,
+      fill: 'red',
+    })
+    return rect
+  }
+
+  /**
+   * 进入矩形绘制模式
+   */
+  drawRect() {
+    this.stopDrawing()
+    this.layerDraw.skipTargetFind = true
+    this.layerDraw.selection = false
+    this.mode = MODE.RECT
   }
 }
 

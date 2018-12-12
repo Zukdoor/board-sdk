@@ -17,11 +17,10 @@
   <button id="undo-button">Undo</button>
   <button id="redo-button">Redo</button>
   <button id="remove-button">Remove</button>
-
+  <button id="rect-button">Rectangle</button>
 
   <script>
     var board = new BoardSDK.Board(document.getElementById('whiteboard'))
-    board.setBackground('rgb(0, 255, 255)')
     var drawButton = document.getElementById('draw-button')
     drawButton.addEventListener('click', () => {
       board.startDrawing()
@@ -57,6 +56,10 @@
     var removeButton = document.getElementById('remove-button')
     removeButton.addEventListener('click', () => {
       board.removeSelection()
+    })
+    var rectButton = document.getElementById('rect-button')
+    rectButton.addEventListener('click', () => {
+      board.drawRect()
     })
   </script>
 </body>
