@@ -129,4 +129,14 @@ describe('Board', () => {
     board.setBackground('blue')
     board.layerDraw.backgroundColor.should.equal('blue')
   })
+
+  it('can start drawing', () => {
+    board.startDrawing()
+    board.layerDraw.isDrawingMode.should.equal(true)
+  })
+
+  it('can stop drawing', () => {
+    board.stopDrawing()
+    board.layerDraw.isDrawingMode.should.equal(false)
+  })
 })

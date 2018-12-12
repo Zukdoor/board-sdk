@@ -1,6 +1,8 @@
 import History from './History'
 import uuid from '../helpers/uuid'
 
+const REMOVING = true
+
 /**
  * 白板主类
  * @constructor
@@ -74,7 +76,7 @@ class Board {
     const operation = {
       _objects: objects,
     }
-    this.history.addOperation(operation, true)
+    this.history.addOperation(operation, REMOVING)
   }
 
   /**
@@ -165,6 +167,20 @@ class Board {
   setBackground(color) {
     this.layerDraw.backgroundColor = color
     this.layerDraw.requestRenderAll()
+  }
+
+  /**
+   * 退出画笔模式
+   */
+  stopDrawing() {
+    this.layerDraw.isDrawingMode = false
+  }
+
+  /**
+   * 进入画笔模式
+   */
+  startDrawing() {
+    this.layerDraw.isDrawingMode = true
   }
 }
 

@@ -24,11 +24,11 @@
     board.setBackground('rgb(0, 255, 255)')
     var drawButton = document.getElementById('draw-button')
     drawButton.addEventListener('click', () => {
-      board.layerDraw.isDrawingMode = true
+      board.startDrawing()
     })
     var selectButton = document.getElementById('select-button')
     selectButton.addEventListener('click', () => {
-      board.layerDraw.isDrawingMode = false
+      board.stopDrawing()
     })
     var saveButton = document.getElementById('save-button')
     saveButton.addEventListener('click', () => {
