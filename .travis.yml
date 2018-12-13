@@ -15,3 +15,6 @@ script:
   - yarn test
   - yarn coverage
   - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
+  - yarn build:docs
+  - NOW_DEPLOY_ID=$( now --no-clipboard --token=$NOW_TOKEN out )
+  - now alias $NOW_DEPLOY_ID $DOC_URL --token=$NOW_TOKEN
