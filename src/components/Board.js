@@ -241,7 +241,7 @@ class Board {
 
   /**
    * 设置画布背景
-   * @param {string} color
+   * @param {string} [color = '#FFFFFF'] 背景颜色
    * @example
    * // 可以使用颜色名称
    * board.setBackground('blue')
@@ -264,7 +264,7 @@ class Board {
 
   /**
    * 设置当前轮廓颜色
-   * @param {string} color
+   * @param {string} [color = 'black'] 轮廓颜色
    * @example
    * // 参考setBackground()的使用方法
    * board.setStrokeColor('black')
@@ -275,7 +275,7 @@ class Board {
 
   /**
    * 设置当前填充颜色
-   * @param {string} color
+   * @param {string} [color = ''] 填充颜色
    * @example
    * // 参考setBackground()的使用方法
    * board.setFillColor('blue')
@@ -286,7 +286,7 @@ class Board {
 
   /**
    * 设置当前轮廓粗细
-   * @param {integer} width
+   * @param {integer} [width = 2] 轮廓粗细（为保证绘图效果，建议设置为偶数）
    * @example
    * board.setStrokeWidth(2)
    */
