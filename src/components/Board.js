@@ -62,8 +62,6 @@ class Board {
 
     canvas.on('mouse:down', options => {
       switch (this.mode) {
-        case MODE.DRAWING:
-          return
         case MODE.LINE:
           break
         case MODE.RECT:
@@ -81,8 +79,6 @@ class Board {
 
     canvas.on('mouse:move', options => {
       switch (this.mode) {
-        case MODE.DRAWING:
-          return
         case MODE.LINE:
           break
         case MODE.RECT:
@@ -100,8 +96,6 @@ class Board {
 
     canvas.on('mouse:up', options => {
       switch (this.mode) {
-        case MODE.DRAWING:
-          return
         case MODE.LINE:
           break
         case MODE.RECT:
@@ -109,6 +103,8 @@ class Board {
           this.layerDraw._objects.pop()
           this.layerDraw.add(rect)
           this.isCreatingShape = false
+          this.point.x = 0
+          this.point.y = 0
           break
         case MODE.CIRC:
           break

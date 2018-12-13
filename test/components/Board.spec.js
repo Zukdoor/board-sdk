@@ -1,14 +1,28 @@
 import jsdom from 'jsdom'
 import chai from 'chai'
 import Board from '../../src/components/Board'
+import {MODE} from '../../src/constants/mode'
 chai.should()
 
 // Configure JSDOM
 const {JSDOM} = jsdom
-const dom = new JSDOM(`<!DOCTYPE html><body><div><canvas id="test" width="800" height="600"></canvas></div></body>`, {
-  url: 'https://example.org/',
-  pretendToBeVisual: true,
-})
+const dom = new JSDOM(
+  `
+  <html>
+    <body>
+      <div>
+        <canvas id="test" width="800" height="600"></canvas>
+      </div>
+      <script>
+      </script>
+    </body>
+  </html>
+  `,
+  {
+    url: 'https://example.org/',
+    pretendToBeVisual: true,
+  },
+)
 
 // Configure global variables
 global.window = dom.window
@@ -41,6 +55,7 @@ describe('Board', () => {
 
   afterEach(() => {
     board.clear()
+    board.startDrawing()
   })
 
   it('can draw a line', () => {
@@ -114,7 +129,6 @@ describe('Board', () => {
       canvas: board.layerDraw,
     })
 
-    // board.layerDraw.discardActiveObject()
     sel.left += 50
     board.layerDraw._objects[0].setCoords()
     board.layerDraw._objects[0].aCoords.tl.x.should.equal(-175.5)
@@ -138,5 +152,100 @@ describe('Board', () => {
   it('can stop drawing', () => {
     board.stopDrawing()
     board.layerDraw.isDrawingMode.should.equal(false)
+  })
+
+  it('can handle mouse events in SELECT mode', () => {
+    board.mode = MODE.SELECT
+    board.layerDraw.fire('mouse:down', {
+      e: {x: 100, y: 100},
+    })
+
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 200, y: 200},
+    })
+
+    board.layerDraw.fire('mouse:up', {
+      e: {x: 300, y: 300},
+    })
+
+    board.getObjects().length.should.equal(1)
+  })
+
+  it('can handle mouse events in CIRC mode', () => {
+    board.mode = MODE.CIRC
+    board.layerDraw.fire('mouse:down', {
+      e: {x: 100, y: 100},
+    })
+
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 200, y: 200},
+    })
+
+    board.layerDraw.fire('mouse:up', {
+      e: {x: 300, y: 300},
+    })
+
+    board.getObjects().length.should.equal(1)
+  })
+
+  it('can handle mouse events in LINE mode', () => {
+    board.mode = MODE.LINE
+    board.layerDraw.fire('mouse:down', {
+      e: {x: 100, y: 100},
+    })
+
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 200, y: 200},
+    })
+
+    board.layerDraw.fire('mouse:up', {
+      e: {x: 300, y: 300},
+    })
+
+    board.getObjects().length.should.equal(1)
+  })
+
+  it('can draw a rectangle', () => {
+    board.drawRect()
+    board.mode.should.equal(MODE.RECT)
+    board.layerDraw.isDrawingMode.should.equal(false)
+
+    // mousemove before mousedown should have no effects
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 100, y: 100},
+    })
+
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
+
+    // handle mousedown
+    board.layerDraw.fire('mouse:down', {
+      e: {x: 100, y: 100},
+    })
+
+    board.point.x.should.equal(100)
+    board.point.y.should.equal(100)
+
+    // handle mousemove after mousedown is fired
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 200, y: 200},
+    })
+
+    board.layerDraw._objects[1].left.should.equal(100)
+    board.layerDraw._objects[1].top.should.equal(100)
+    board.layerDraw._objects[1].width.should.equal(100)
+    board.layerDraw._objects[1].height.should.equal(100)
+
+    // handle mouseup
+    board.layerDraw.fire('mouse:up', {
+      e: {x: 300, y: 300},
+    })
+
+    board.layerDraw._objects[1].left.should.equal(100)
+    board.layerDraw._objects[1].top.should.equal(100)
+    board.layerDraw._objects[1].width.should.equal(200)
+    board.layerDraw._objects[1].height.should.equal(200)
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
   })
 })
