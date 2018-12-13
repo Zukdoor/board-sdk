@@ -139,11 +139,6 @@ describe('Board', () => {
     board.layerDraw._objects[0].aCoords.tl.x.should.equal(-175.5)
   })
 
-  it('can set background color', () => {
-    board.setBackground('blue')
-    board.layerDraw.backgroundColor.should.equal('blue')
-  })
-
   it('can start drawing', () => {
     board.startDrawing()
     board.layerDraw.isDrawingMode.should.equal(true)
@@ -152,6 +147,24 @@ describe('Board', () => {
   it('can stop drawing', () => {
     board.stopDrawing()
     board.layerDraw.isDrawingMode.should.equal(false)
+  })
+
+  it('can handle mouse events in CIRCLE mode', () => {
+    board.drawShape(MODE.CIRCLE)
+    board.mode.should.equal(MODE.CIRCLE)
+    board.layerDraw.fire('mouse:down', {
+      e: {x: 100, y: 100},
+    })
+
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 200, y: 200},
+    })
+
+    board.layerDraw.fire('mouse:up', {
+      e: {x: 300, y: 300},
+    })
+
+    board.getObjects().length.should.equal(1)
   })
 
   it('can handle mouse events in SELECT mode', () => {
@@ -171,42 +184,52 @@ describe('Board', () => {
     board.getObjects().length.should.equal(1)
   })
 
-  it('can handle mouse events in CIRC mode', () => {
-    board.mode = MODE.CIRC
+  it('can draw a line', () => {
+    board.drawShape(MODE.LINE)
+    board.mode.should.equal(MODE.LINE)
+    board.layerDraw.isDrawingMode.should.equal(false)
+
+    // mousemove before mousedown should have no effects
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 100, y: 100},
+    })
+
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
+
+    // handle mousedown
     board.layerDraw.fire('mouse:down', {
       e: {x: 100, y: 100},
     })
 
+    board.point.x.should.equal(100)
+    board.point.y.should.equal(100)
+
+    // handle mousemove after mousedown is fired
     board.layerDraw.fire('mouse:move', {
       e: {x: 200, y: 200},
     })
 
+    board.layerDraw._objects[1].x1.should.equal(100)
+    board.layerDraw._objects[1].y1.should.equal(100)
+    board.layerDraw._objects[1].x2.should.equal(200)
+    board.layerDraw._objects[1].y2.should.equal(200)
+
+    // handle mouseup
     board.layerDraw.fire('mouse:up', {
       e: {x: 300, y: 300},
     })
 
-    board.getObjects().length.should.equal(1)
-  })
-
-  it('can handle mouse events in LINE mode', () => {
-    board.mode = MODE.LINE
-    board.layerDraw.fire('mouse:down', {
-      e: {x: 100, y: 100},
-    })
-
-    board.layerDraw.fire('mouse:move', {
-      e: {x: 200, y: 200},
-    })
-
-    board.layerDraw.fire('mouse:up', {
-      e: {x: 300, y: 300},
-    })
-
-    board.getObjects().length.should.equal(1)
+    board.layerDraw._objects[1].x1.should.equal(100)
+    board.layerDraw._objects[1].y1.should.equal(100)
+    board.layerDraw._objects[1].x2.should.equal(300)
+    board.layerDraw._objects[1].y2.should.equal(300)
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
   })
 
   it('can draw a rectangle', () => {
-    board.drawRect()
+    board.drawShape(MODE.RECT)
     board.mode.should.equal(MODE.RECT)
     board.layerDraw.isDrawingMode.should.equal(false)
 
@@ -245,6 +268,50 @@ describe('Board', () => {
     board.layerDraw._objects[1].top.should.equal(100)
     board.layerDraw._objects[1].width.should.equal(200)
     board.layerDraw._objects[1].height.should.equal(200)
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
+  })
+
+  it('can draw an ellipse', () => {
+    board.drawShape(MODE.ELLIPSE)
+    board.mode.should.equal(MODE.ELLIPSE)
+    board.layerDraw.isDrawingMode.should.equal(false)
+
+    // mousemove before mousedown should have no effects
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 100, y: 100},
+    })
+
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
+
+    // handle mousedown
+    board.layerDraw.fire('mouse:down', {
+      e: {x: 100, y: 100},
+    })
+
+    board.point.x.should.equal(100)
+    board.point.y.should.equal(100)
+
+    // handle mousemove after mousedown is fired
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 200, y: 200},
+    })
+
+    board.layerDraw._objects[1].left.should.equal(100)
+    board.layerDraw._objects[1].top.should.equal(100)
+    board.layerDraw._objects[1].rx.should.equal(50)
+    board.layerDraw._objects[1].ry.should.equal(50)
+
+    // handle mouseup
+    board.layerDraw.fire('mouse:up', {
+      e: {x: 300, y: 300},
+    })
+
+    board.layerDraw._objects[1].left.should.equal(100)
+    board.layerDraw._objects[1].top.should.equal(100)
+    board.layerDraw._objects[1].rx.should.equal(100)
+    board.layerDraw._objects[1].ry.should.equal(100)
     board.point.x.should.equal(0)
     board.point.y.should.equal(0)
   })

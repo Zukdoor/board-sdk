@@ -3,5 +3,6 @@ export const MODE = {
   SELECT: 1,
   LINE: 2,
   RECT: 3,
-  CIRC: 4,
+  CIRCLE: 4,
+  ELLIPSE: 5,
 }

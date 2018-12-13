@@ -16,50 +16,60 @@
   <button id="export-button">Export</button>
   <button id="undo-button">Undo</button>
   <button id="redo-button">Redo</button>
-  <button id="remove-button">Remove</button>
+  <button id="remove-button">Remove</button><br/>
   <button id="rect-button">Rectangle</button>
+  <button id="line-button">Line</button>
+  <button id="ellipse-button">Ellipse</button>
 
   <script>
-    var board = new BoardSDK.Board(document.getElementById('whiteboard'))
-    var drawButton = document.getElementById('draw-button')
+    const board = new BoardSDK.Board(document.getElementById('whiteboard'))
+    const drawButton = document.getElementById('draw-button')
     drawButton.addEventListener('click', () => {
       board.startDrawing()
     })
-    var selectButton = document.getElementById('select-button')
+    const selectButton = document.getElementById('select-button')
     selectButton.addEventListener('click', () => {
       board.stopDrawing()
     })
-    var saveButton = document.getElementById('save-button')
+    const saveButton = document.getElementById('save-button')
     saveButton.addEventListener('click', () => {
       board.save()
     })
-    var loadButton = document.getElementById('load-button')
+    const loadButton = document.getElementById('load-button')
     loadButton.addEventListener('click', () => {
       board.load()
     })
-    var clearButton = document.getElementById('clear-button')
+    const clearButton = document.getElementById('clear-button')
     clearButton.addEventListener('click', () => {
       board.clear()
     })
-    var exportButton = document.getElementById('export-button')
+    const exportButton = document.getElementById('export-button')
     exportButton.addEventListener('click', () => {
       console.log(board.export())
     })
-    var undoButton = document.getElementById('undo-button')
+    const undoButton = document.getElementById('undo-button')
     undoButton.addEventListener('click', () => {
       board.undo()
     })
-    var redoButton = document.getElementById('redo-button')
+    const redoButton = document.getElementById('redo-button')
     redoButton.addEventListener('click', () => {
       board.redo()
     })
-    var removeButton = document.getElementById('remove-button')
+    const removeButton = document.getElementById('remove-button')
     removeButton.addEventListener('click', () => {
       board.removeSelection()
     })
-    var rectButton = document.getElementById('rect-button')
+    const rectButton = document.getElementById('rect-button')
     rectButton.addEventListener('click', () => {
-      board.drawRect()
+      board.drawShape(3)
+    })
+    const lineButton = document.getElementById('line-button')
+    lineButton.addEventListener('click', () => {
+      board.drawShape(2)
+    })
+    const ellipseButton = document.getElementById('ellipse-button')
+    ellipseButton.addEventListener('click', () => {
+      board.drawShape(5)
     })
   </script>
 </body>

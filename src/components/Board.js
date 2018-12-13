@@ -31,12 +31,22 @@ class Board {
       isDrawingMode: true,
     }
     this.layerDraw = new fabric.Canvas(node, props)
-    this.transLayer = new fabric.Canvas(node, props)
     this.history = new History()
     this.mode = MODE.DRAWING
     this.point = new fabric.Point(0, 0)
     this.isCreatingShape = false
+    this.setDefaults()
     this.setListeners()
+  }
+
+  /**
+   * 为画板设置默认属性值
+   */
+  setDefaults() {
+    this.setBackground()
+    this.setStrokeColor()
+    this.setStrokeWidth()
+    this.setFillColor()
   }
 
   /**
@@ -61,33 +71,32 @@ class Board {
     })
 
     canvas.on('mouse:down', options => {
-      switch (this.mode) {
-        case MODE.LINE:
-          break
-        case MODE.RECT:
-          this.point.x = options.e.x
-          this.point.y = options.e.y
-          this.isCreatingShape = true
-          this.layerDraw._objects.push(null)
-          break
-        case MODE.CIRC:
-          break
-        default:
-          return
-      }
+      if (this.mode < MODE.LINE || this.mode === MODE.CIRCLE) return
+      this.point.x = options.e.x
+      this.point.y = options.e.y
+      this.isCreatingShape = true
+      this.layerDraw._objects.push(null)
     })
 
     canvas.on('mouse:move', options => {
+      if (!this.isCreatingShape) return
       switch (this.mode) {
         case MODE.LINE:
+          const line = this.createLine(new fabric.Point(options.e.x, options.e.y))
+          this.layerDraw._objects[this.layerDraw._objects.length - 1] = line
+          this.layerDraw.requestRenderAll()
           break
         case MODE.RECT:
-          if (!this.isCreatingShape) return
           const rect = this.createRect(new fabric.Point(options.e.x, options.e.y))
           this.layerDraw._objects[this.layerDraw._objects.length - 1] = rect
           this.layerDraw.requestRenderAll()
           break
-        case MODE.CIRC:
+        case MODE.CIRCLE:
+          break
+        case MODE.ELLIPSE:
+          const ellipse = this.createEllipse(new fabric.Point(options.e.x, options.e.y))
+          this.layerDraw._objects[this.layerDraw._objects.length - 1] = ellipse
+          this.layerDraw.requestRenderAll()
           break
         default:
           return
@@ -95,8 +104,15 @@ class Board {
     })
 
     canvas.on('mouse:up', options => {
+      if (!this.isCreatingShape) return
       switch (this.mode) {
         case MODE.LINE:
+          const line = this.createLine(new fabric.Point(options.e.x, options.e.y))
+          this.layerDraw._objects.pop()
+          this.layerDraw.add(line)
+          this.isCreatingShape = false
+          this.point.x = 0
+          this.point.y = 0
           break
         case MODE.RECT:
           const rect = this.createRect(new fabric.Point(options.e.x, options.e.y))
@@ -106,7 +122,15 @@ class Board {
           this.point.x = 0
           this.point.y = 0
           break
-        case MODE.CIRC:
+        case MODE.CIRCLE:
+          break
+        case MODE.ELLIPSE:
+          const ellipse = this.createEllipse(new fabric.Point(options.e.x, options.e.y))
+          this.layerDraw._objects.pop()
+          this.layerDraw.add(ellipse)
+          this.isCreatingShape = false
+          this.point.x = 0
+          this.point.y = 0
           break
         default:
           return
@@ -225,9 +249,41 @@ class Board {
    * // 可以使用HSL
    * board.setBackground('hsl(180, 100%, 50%)')
    */
-  setBackground(color) {
+  setBackground(color = '#FFFFFF') {
     this.layerDraw.backgroundColor = color
     this.layerDraw.requestRenderAll()
+  }
+
+  /**
+   * 设置当前轮廓颜色
+   * @param {string} color
+   * @example
+   * // 参考setBackground()的使用方法
+   * board.setStrokeColor('black')
+   */
+  setStrokeColor(color = 'black') {
+    this.strokeColor = color
+  }
+
+  /**
+   * 设置当前填充颜色
+   * @param {string} color
+   * @example
+   * // 参考setBackground()的使用方法
+   * board.setFillColor('blue')
+   */
+  setFillColor(color = 'blue') {
+    this.fillColor = color
+  }
+
+  /**
+   * 设置当前轮廓粗细
+   * @param {integer} width
+   * @example
+   * board.setStrokeWidth(2)
+   */
+  setStrokeWidth(width = 2) {
+    this.strokeWidth = width
   }
 
   /**
@@ -249,6 +305,30 @@ class Board {
   }
 
   /**
+   * 进入图形绘制模式
+   * @param {integer} mode 绘制模式
+   */
+  drawShape(mode) {
+    this.stopDrawing()
+    this.layerDraw.skipTargetFind = true
+    this.layerDraw.selection = false
+    this.mode = mode
+  }
+
+  /**
+   * 创建线段
+   * @param {object} point 目标点
+   * @return {object} 创建的线段
+   */
+  createLine(point) {
+    const line = new fabric.Line([this.point.x, this.point.y, point.x, point.y], {
+      stroke: this.strokeColor,
+      strokeWidth: this.strokeWidth,
+    })
+    return line
+  }
+
+  /**
    * 创建矩形
    * @param {object} point 目标点
    * @return {object} 创建的矩形
@@ -259,21 +339,29 @@ class Board {
       left: Math.min(this.point.x, point.x),
       width: Math.abs(this.point.x - point.x),
       height: Math.abs(this.point.y - point.y),
-      stroke: 'black',
-      strokeWidth: 2,
-      fill: 'red',
+      stroke: this.strokeColor,
+      strokeWidth: this.strokeWidth,
+      fill: this.FillColor,
     })
     return rect
   }
 
   /**
-   * 进入矩形绘制模式
+   * 创建椭圆
+   * @param {object} point 目标点
+   * @return {object} 创建的椭圆
    */
-  drawRect() {
-    this.stopDrawing()
-    this.layerDraw.skipTargetFind = true
-    this.layerDraw.selection = false
-    this.mode = MODE.RECT
+  createEllipse(point) {
+    const ellipse = new fabric.Ellipse({
+      top: Math.min(this.point.y, point.y),
+      left: Math.min(this.point.x, point.x),
+      rx: Math.abs(this.point.x - point.x) / 2,
+      ry: Math.abs(this.point.y - point.y) / 2,
+      stroke: this.strokeColor,
+      strokeWidth: this.strokeWidth,
+      fill: this.FillColor,
+    })
+    return ellipse
   }
 }
 
