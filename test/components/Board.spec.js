@@ -185,7 +185,7 @@ describe('Board', () => {
   })
 
   it('can draw a line', () => {
-    board.drawShape(MODE.LINE)
+    board.drawLine()
     board.mode.should.equal(MODE.LINE)
     board.layerDraw.isDrawingMode.should.equal(false)
 
@@ -229,7 +229,7 @@ describe('Board', () => {
   })
 
   it('can draw a rectangle', () => {
-    board.drawShape(MODE.RECT)
+    board.drawRect()
     board.mode.should.equal(MODE.RECT)
     board.layerDraw.isDrawingMode.should.equal(false)
 
@@ -273,7 +273,7 @@ describe('Board', () => {
   })
 
   it('can draw an ellipse', () => {
-    board.drawShape(MODE.ELLIPSE)
+    board.drawEllipse()
     board.mode.should.equal(MODE.ELLIPSE)
     board.layerDraw.isDrawingMode.should.equal(false)
 

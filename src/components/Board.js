@@ -12,11 +12,11 @@ class Board {
   /**
    * 创建白板对象
    * @param {HTMLElement} node 插入白板的节点
-   * @param {object} options 选项
-   * @property {boolean} options.interactive 白板是否可交互
-   * @property {boolean} options.fullSelection 框选白板元素的判断方法
-   * @param {array} plugins 需要使用的插件
-   * @param {object} key 用于鉴权的口令
+   * @param {object} [options = {}] 选项
+   * @property {boolean} [options.interactive = true] 白板是否可交互
+   * @property {boolean} [options.fullSelection = true] 框选白板元素的判断方法
+   * @param {array} [plugins = []] 需要使用的插件
+   * @param {object} [key = {}] 用于鉴权的口令
    */
   constructor(node, options = {}, plugins = [], key = {}) {
     const props = {
@@ -321,6 +321,27 @@ class Board {
     this.layerDraw.skipTargetFind = true
     this.layerDraw.selection = false
     this.mode = mode
+  }
+
+  /**
+   * 进入线段绘制模式
+   */
+  drawLine() {
+    this.drawShape(MODE.LINE)
+  }
+
+  /**
+   * 进入矩形绘制模式
+   */
+  drawRect() {
+    this.drawShape(MODE.RECT)
+  }
+
+  /**
+   * 进入椭圆绘制模式
+   */
+  drawEllipse() {
+    this.drawShape(MODE.ELLIPSE)
   }
 
   /**
