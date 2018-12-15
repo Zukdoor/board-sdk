@@ -149,24 +149,6 @@ describe('Board', () => {
     board.layerDraw.isDrawingMode.should.equal(false)
   })
 
-  it('can handle mouse events in CIRCLE mode', () => {
-    board.drawShape(MODE.CIRCLE)
-    board.mode.should.equal(MODE.CIRCLE)
-    board.layerDraw.fire('mouse:down', {
-      e: {x: 100, y: 100},
-    })
-
-    board.layerDraw.fire('mouse:move', {
-      e: {x: 200, y: 200},
-    })
-
-    board.layerDraw.fire('mouse:up', {
-      e: {x: 300, y: 300},
-    })
-
-    board.getObjects().length.should.equal(1)
-  })
-
   it('can handle mouse events in SELECT mode', () => {
     board.mode = MODE.SELECT
     board.layerDraw.fire('mouse:down', {
@@ -251,7 +233,52 @@ describe('Board', () => {
 
     // handle mousemove after mousedown is fired
     board.layerDraw.fire('mouse:move', {
-      e: {x: 200, y: 200},
+      e: {x: 200, y: 150},
+    })
+
+    board.layerDraw._objects[1].left.should.equal(100)
+    board.layerDraw._objects[1].top.should.equal(100)
+    board.layerDraw._objects[1].width.should.equal(100)
+    board.layerDraw._objects[1].height.should.equal(50)
+
+    // handle mouseup
+    board.layerDraw.fire('mouse:up', {
+      e: {x: 300, y: 250},
+    })
+
+    board.layerDraw._objects[1].left.should.equal(100)
+    board.layerDraw._objects[1].top.should.equal(100)
+    board.layerDraw._objects[1].width.should.equal(200)
+    board.layerDraw._objects[1].height.should.equal(150)
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
+  })
+
+  it('can draw a square', () => {
+    board.drawSquare()
+    board.mode.should.equal(MODE.SQUARE)
+    board.isRegularShape.should.equal(true)
+    board.layerDraw.isDrawingMode.should.equal(false)
+
+    // mousemove before mousedown should have no effects
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 100, y: 100},
+    })
+
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
+
+    // handle mousedown
+    board.layerDraw.fire('mouse:down', {
+      e: {x: 100, y: 100},
+    })
+
+    board.point.x.should.equal(100)
+    board.point.y.should.equal(100)
+
+    // handle mousemove after mousedown is fired
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 200, y: 150},
     })
 
     board.layerDraw._objects[1].left.should.equal(100)
@@ -261,7 +288,7 @@ describe('Board', () => {
 
     // handle mouseup
     board.layerDraw.fire('mouse:up', {
-      e: {x: 300, y: 300},
+      e: {x: 300, y: 250},
     })
 
     board.layerDraw._objects[1].left.should.equal(100)
@@ -295,7 +322,52 @@ describe('Board', () => {
 
     // handle mousemove after mousedown is fired
     board.layerDraw.fire('mouse:move', {
-      e: {x: 200, y: 200},
+      e: {x: 200, y: 150},
+    })
+
+    board.layerDraw._objects[1].left.should.equal(100)
+    board.layerDraw._objects[1].top.should.equal(100)
+    board.layerDraw._objects[1].rx.should.equal(50)
+    board.layerDraw._objects[1].ry.should.equal(25)
+
+    // handle mouseup
+    board.layerDraw.fire('mouse:up', {
+      e: {x: 300, y: 250},
+    })
+
+    board.layerDraw._objects[1].left.should.equal(100)
+    board.layerDraw._objects[1].top.should.equal(100)
+    board.layerDraw._objects[1].rx.should.equal(100)
+    board.layerDraw._objects[1].ry.should.equal(75)
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
+  })
+
+  it('can draw a circle', () => {
+    board.drawCircle()
+    board.mode.should.equal(MODE.CIRCLE)
+    board.isRegularShape.should.equal(true)
+    board.layerDraw.isDrawingMode.should.equal(false)
+
+    // mousemove before mousedown should have no effects
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 100, y: 100},
+    })
+
+    board.point.x.should.equal(0)
+    board.point.y.should.equal(0)
+
+    // handle mousedown
+    board.layerDraw.fire('mouse:down', {
+      e: {x: 100, y: 100},
+    })
+
+    board.point.x.should.equal(100)
+    board.point.y.should.equal(100)
+
+    // handle mousemove after mousedown is fired
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 200, y: 150},
     })
 
     board.layerDraw._objects[1].left.should.equal(100)
@@ -305,7 +377,7 @@ describe('Board', () => {
 
     // handle mouseup
     board.layerDraw.fire('mouse:up', {
-      e: {x: 300, y: 300},
+      e: {x: 300, y: 250},
     })
 
     board.layerDraw._objects[1].left.should.equal(100)

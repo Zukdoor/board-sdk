@@ -45,6 +45,7 @@ class Board {
     this.mode = MODE.DRAWING
     this.point = new fabric.Point(0, 0)
     this.isCreatingShape = false
+    this.isRegularShape = false
   }
 
   /**
@@ -79,7 +80,7 @@ class Board {
     })
 
     canvas.on('mouse:down', options => {
-      if (this.mode < MODE.LINE || this.mode === MODE.CIRCLE) return
+      if (this.mode < MODE.LINE) return
       this.point.x = options.e.x
       this.point.y = options.e.y
       this.isCreatingShape = true
@@ -91,20 +92,23 @@ class Board {
       switch (this.mode) {
         case MODE.LINE:
           const line = this.createLine(this.point, new fabric.Point(options.e.x, options.e.y))
-          this.layerDraw._objects[this.layerDraw._objects.length - 1] = line
-          this.layerDraw.requestRenderAll()
+          this.replaceLastObject(line)
           break
         case MODE.RECT:
           const rect = this.createRect(this.point, new fabric.Point(options.e.x, options.e.y))
-          this.layerDraw._objects[this.layerDraw._objects.length - 1] = rect
-          this.layerDraw.requestRenderAll()
+          this.replaceLastObject(rect)
           break
-        case MODE.CIRCLE:
+        case MODE.SQUARE:
+          const square = this.createRect(this.point, new fabric.Point(options.e.x, options.e.y))
+          this.replaceLastObject(square)
           break
         case MODE.ELLIPSE:
           const ellipse = this.createEllipse(this.point, new fabric.Point(options.e.x, options.e.y))
-          this.layerDraw._objects[this.layerDraw._objects.length - 1] = ellipse
-          this.layerDraw.requestRenderAll()
+          this.replaceLastObject(ellipse)
+          break
+        case MODE.CIRCLE:
+          const circle = this.createEllipse(this.point, new fabric.Point(options.e.x, options.e.y))
+          this.replaceLastObject(circle)
           break
         default:
           return
@@ -116,29 +120,23 @@ class Board {
       switch (this.mode) {
         case MODE.LINE:
           const line = this.createLine(this.point, new fabric.Point(options.e.x, options.e.y))
-          this.layerDraw._objects.pop()
-          this.layerDraw.add(line)
-          this.isCreatingShape = false
-          this.point.x = 0
-          this.point.y = 0
+          this.popLastObjectAndAdd(line)
           break
         case MODE.RECT:
           const rect = this.createRect(this.point, new fabric.Point(options.e.x, options.e.y))
-          this.layerDraw._objects.pop()
-          this.layerDraw.add(rect)
-          this.isCreatingShape = false
-          this.point.x = 0
-          this.point.y = 0
+          this.popLastObjectAndAdd(rect)
           break
-        case MODE.CIRCLE:
+        case MODE.SQUARE:
+          const square = this.createRect(this.point, new fabric.Point(options.e.x, options.e.y))
+          this.popLastObjectAndAdd(square)
           break
         case MODE.ELLIPSE:
           const ellipse = this.createEllipse(this.point, new fabric.Point(options.e.x, options.e.y))
-          this.layerDraw._objects.pop()
-          this.layerDraw.add(ellipse)
-          this.isCreatingShape = false
-          this.point.x = 0
-          this.point.y = 0
+          this.popLastObjectAndAdd(ellipse)
+          break
+        case MODE.CIRCLE:
+          const circle = this.createEllipse(this.point, new fabric.Point(options.e.x, options.e.y))
+          this.popLastObjectAndAdd(circle)
           break
         default:
           return
@@ -184,6 +182,27 @@ class Board {
         skewY: object.skewY,
       }
     })
+  }
+
+  /**
+   * 替换白板的最后一个对象并渲染，不会触发object:added事件
+   * @param {fabric.Object} object 用于替换的对象
+   */
+  replaceLastObject(object) {
+    this.layerDraw._objects[this.layerDraw._objects.length - 1] = object
+    this.layerDraw.requestRenderAll()
+  }
+
+  /**
+   * 替换白板的最后一个对象并渲染，触发object:added事件
+   * @param {fabric.Object} object 用于替换的对象
+   */
+  popLastObjectAndAdd(object) {
+    this.layerDraw._objects.pop()
+    this.layerDraw.add(object)
+    this.isCreatingShape = false
+    this.point.x = 0
+    this.point.y = 0
   }
 
   /**
@@ -324,9 +343,24 @@ class Board {
   }
 
   /**
+   * 绘制规则图形，在RECT|ELLIPSE模式下生效
+   */
+  drawRegularShape() {
+    this.isRegularShape = true
+  }
+
+  /**
+   * 绘制一般图形
+   */
+  drawNormalShape() {
+    this.isRegularShape = false
+  }
+
+  /**
    * 进入线段绘制模式
    */
   drawLine() {
+    this.drawNormalShape()
     this.drawShape(MODE.LINE)
   }
 
@@ -334,6 +368,7 @@ class Board {
    * 进入矩形绘制模式
    */
   drawRect() {
+    this.drawNormalShape()
     this.drawShape(MODE.RECT)
   }
 
@@ -341,7 +376,24 @@ class Board {
    * 进入椭圆绘制模式
    */
   drawEllipse() {
+    this.drawNormalShape()
     this.drawShape(MODE.ELLIPSE)
+  }
+
+  /**
+   * 进入圆形绘制模式
+   */
+  drawCircle() {
+    this.drawRegularShape()
+    this.drawShape(MODE.CIRCLE)
+  }
+
+  /**
+   * 进入正方形绘制模式
+   */
+  drawSquare() {
+    this.drawRegularShape()
+    this.drawShape(MODE.SQUARE)
   }
 
   /**
@@ -368,7 +420,7 @@ class Board {
       top: Math.min(from.y, to.y),
       left: Math.min(from.x, to.x),
       width: Math.abs(from.x - to.x),
-      height: Math.abs(from.y - to.y),
+      height: this.isRegularShape ? Math.abs(from.x - to.x) : Math.abs(from.y - to.y),
       ...this.shapeProperties,
     })
     return rect
@@ -385,7 +437,7 @@ class Board {
       top: Math.min(from.y, to.y),
       left: Math.min(from.x, to.x),
       rx: Math.abs(from.x - to.x) / 2,
-      ry: Math.abs(from.y - to.y) / 2,
+      ry: this.isRegularShape ? Math.abs(from.x - to.x) / 2 : Math.abs(from.y - to.y) / 2,
       ...this.shapeProperties,
     })
     return ellipse
