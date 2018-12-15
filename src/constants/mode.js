@@ -1,9 +1,10 @@
 export const MODE = {
   DRAWING: 0,
-  SELECT: 1,
-  LINE: 2,
-  RECT: 3,
-  SQUARE: 4,
-  ELLIPSE: 5,
-  CIRCLE: 6,
+  PANNING: 1,
+  SELECT: 2,
+  LINE: 3,
+  RECT: 4,
+  SQUARE: 5,
+  ELLIPSE: 6,
+  CIRCLE: 7,
 }

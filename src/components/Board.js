@@ -81,66 +81,76 @@ class Board {
 
     canvas.on('mouse:down', options => {
       if (this.mode < MODE.LINE) return
-      this.point.x = options.e.x
-      this.point.y = options.e.y
+      this.point = this.getRelativePoint(new fabric.Point(options.e.x, options.e.y))
       this.isCreatingShape = true
       this.layerDraw._objects.push(null)
     })
 
     canvas.on('mouse:move', options => {
       if (!this.isCreatingShape) return
+      const from = this.point
+      const to = this.getRelativePoint(new fabric.Point(options.e.x, options.e.y))
       switch (this.mode) {
         case MODE.LINE:
-          const line = this.createLine(this.point, new fabric.Point(options.e.x, options.e.y))
+          const line = this.createLine(from, to)
           this.replaceLastObject(line)
           break
         case MODE.RECT:
-          const rect = this.createRect(this.point, new fabric.Point(options.e.x, options.e.y))
+          const rect = this.createRect(from, to)
           this.replaceLastObject(rect)
           break
         case MODE.SQUARE:
-          const square = this.createRect(this.point, new fabric.Point(options.e.x, options.e.y))
+          const square = this.createRect(from, to)
           this.replaceLastObject(square)
           break
         case MODE.ELLIPSE:
-          const ellipse = this.createEllipse(this.point, new fabric.Point(options.e.x, options.e.y))
+          const ellipse = this.createEllipse(from, to)
           this.replaceLastObject(ellipse)
           break
         case MODE.CIRCLE:
-          const circle = this.createEllipse(this.point, new fabric.Point(options.e.x, options.e.y))
+          const circle = this.createEllipse(from, to)
           this.replaceLastObject(circle)
           break
-        default:
-          return
       }
     })
 
     canvas.on('mouse:up', options => {
       if (!this.isCreatingShape) return
+      const from = this.point
+      const to = this.getRelativePoint(new fabric.Point(options.e.x, options.e.y))
       switch (this.mode) {
         case MODE.LINE:
-          const line = this.createLine(this.point, new fabric.Point(options.e.x, options.e.y))
+          const line = this.createLine(from, to)
           this.popLastObjectAndAdd(line)
           break
         case MODE.RECT:
-          const rect = this.createRect(this.point, new fabric.Point(options.e.x, options.e.y))
+          const rect = this.createRect(from, to)
           this.popLastObjectAndAdd(rect)
           break
         case MODE.SQUARE:
-          const square = this.createRect(this.point, new fabric.Point(options.e.x, options.e.y))
+          const square = this.createRect(from, to)
           this.popLastObjectAndAdd(square)
           break
         case MODE.ELLIPSE:
-          const ellipse = this.createEllipse(this.point, new fabric.Point(options.e.x, options.e.y))
+          const ellipse = this.createEllipse(from, to)
           this.popLastObjectAndAdd(ellipse)
           break
         case MODE.CIRCLE:
-          const circle = this.createEllipse(this.point, new fabric.Point(options.e.x, options.e.y))
+          const circle = this.createEllipse(from, to)
           this.popLastObjectAndAdd(circle)
           break
-        default:
-          return
       }
+    })
+
+    canvas.on('mouse:wheel', options => {
+      const delta = options.e.deltaY
+      let zoom = canvas.getZoom()
+      zoom = zoom + delta / 200
+      if (zoom > 2) zoom = 2
+      if (zoom < 0.5) zoom = 0.5
+      canvas.zoomToPoint({x: options.e.offsetX, y: options.e.offsetY}, zoom)
+      options.e.preventDefault()
+      options.e.stopPropagation()
     })
   }
 
@@ -203,6 +213,20 @@ class Board {
     this.isCreatingShape = false
     this.point.x = 0
     this.point.y = 0
+  }
+
+  /**
+   * 根据屏幕的绝对坐标计算白板上的相对坐标
+   * @param {fabric.Point} abs 绝对坐标
+   * @return {fabric.Point} rel 相对坐标
+   */
+  getRelativePoint(abs) {
+    const canvas = this.layerDraw
+    const zoom = canvas.getZoom()
+    const relX = abs.x / zoom + canvas.vptCoords.tl.x
+    const relY = abs.y / zoom + canvas.vptCoords.tl.y
+    const rel = new fabric.Point(relX, relY)
+    return rel
   }
 
   /**
@@ -329,6 +353,14 @@ class Board {
   startDrawing() {
     this.layerDraw.isDrawingMode = true
     this.mode = MODE.DRAWING
+  }
+
+  /**
+   * 进入拖拽模式
+   */
+  startPanning() {
+    this.layerDraw.isDrawingMode = false
+    this.mode = MODE.PANNING
   }
 
   /**

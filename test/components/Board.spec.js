@@ -58,10 +58,6 @@ describe('Board', () => {
     board.startDrawing()
   })
 
-  it('can draw a line', () => {
-    board.layerDraw._objects[0].aCoords.tl.x.should.equal(170)
-  })
-
   it('can be cleared', () => {
     board.clear()
     board.layerDraw._objects.length.should.equal(0)
@@ -109,7 +105,7 @@ describe('Board', () => {
     board.layerDraw._objects[0].left += 50
     board.layerDraw._objects[0].setCoords()
     board.layerDraw._objects[0].aCoords.tl.x.should.equal(220)
-    board.layerDraw.trigger('object:modified', {target: board.layerDraw._objects[0]})
+    board.layerDraw.fire('object:modified', {target: board.layerDraw._objects[0]})
     board.undo()
     board.layerDraw._objects[0].aCoords.tl.x.should.equal(170)
     board.redo()
@@ -132,7 +128,7 @@ describe('Board', () => {
     sel.left += 50
     board.layerDraw._objects[0].setCoords()
     board.layerDraw._objects[0].aCoords.tl.x.should.equal(-175.5)
-    board.layerDraw.trigger('object:modified', {target: sel})
+    board.layerDraw.fire('object:modified', {target: sel})
     board.undo()
     board.layerDraw._objects[0].aCoords.tl.x.should.equal(170)
     board.redo()
@@ -147,6 +143,34 @@ describe('Board', () => {
   it('can stop drawing', () => {
     board.stopDrawing()
     board.layerDraw.isDrawingMode.should.equal(false)
+  })
+
+  it('can start panning', () => {
+    board.startPanning()
+    board.mode.should.equal(MODE.PANNING)
+  })
+
+  it('can zoom', () => {
+    const zoomEvent = deltaY => {
+      board.layerDraw.fire('mouse:wheel', {
+        e: {
+          offsetX: 0,
+          offsetY: 0,
+          deltaY: deltaY,
+          preventDefault: () => {},
+          stopPropagation: () => {},
+        },
+      })
+    }
+
+    zoomEvent(200)
+    board.layerDraw.getZoom().should.equal(2)
+
+    zoomEvent(-300)
+    board.layerDraw.getZoom().should.equal(0.5)
+
+    zoomEvent(100)
+    board.layerDraw.getZoom().should.equal(1)
   })
 
   it('can handle mouse events in SELECT mode', () => {
