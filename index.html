@@ -20,7 +20,7 @@
   <button id="rect-button">Rectangle</button>
   <button id="line-button">Line</button>
   <button id="ellipse-button">Ellipse</button>
-
+  <button id="pan-button">Pan</button>
   <script>
     const board = new BoardSDK.Board(document.getElementById('whiteboard'))
     const drawButton = document.getElementById('draw-button')
@@ -29,7 +29,7 @@
     })
     const selectButton = document.getElementById('select-button')
     selectButton.addEventListener('click', () => {
-      board.stopDrawing()
+      board.startSelecting()
     })
     const saveButton = document.getElementById('save-button')
     saveButton.addEventListener('click', () => {
@@ -70,6 +70,10 @@
     const ellipseButton = document.getElementById('ellipse-button')
     ellipseButton.addEventListener('click', () => {
       board.drawEllipse()
+    })
+    const panButton = document.getElementById('pan-button')
+    panButton.addEventListener('click', () => {
+      board.startPanning()
     })
   </script>
 </body>

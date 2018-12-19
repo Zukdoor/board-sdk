@@ -44,7 +44,9 @@ class Board {
     this._setShapeProperties()
     this.mode = MODE.DRAWING
     this.point = new fabric.Point(0, 0)
+    this.absolutePoint = new fabric.Point(0, 0)
     this.isCreatingShape = false
+    this.isDragging = false
     this.isRegularShape = false
   }
 
@@ -80,17 +82,32 @@ class Board {
     })
 
     canvas.on('mouse:down', options => {
-      if (this.mode < MODE.LINE) return
-      this.point = this.getRelativePoint(new fabric.Point(options.e.x, options.e.y))
+      if (this.mode < MODE.PANNING) return
+      this.absolutePoint = new fabric.Point(options.e.x, options.e.y)
+      this.point = this.getRelativePoint(this.absolutePoint)
+      if (this.mode === MODE.PANNING) {
+        this.isDragging = true
+        return
+      }
       this.isCreatingShape = true
       this.layerDraw._objects.push(null)
     })
 
     canvas.on('mouse:move', options => {
-      if (!this.isCreatingShape) return
+      if (!this.isCreatingShape && !this.isDragging) return
       const from = this.point
-      const to = this.getRelativePoint(new fabric.Point(options.e.x, options.e.y))
+      const absoluteTo = new fabric.Point(options.e.x, options.e.y)
+      const to = this.getRelativePoint(absoluteTo)
       switch (this.mode) {
+        case MODE.PANNING:
+          const absoluteFrom = this.absolutePoint
+          if (this.isDragging) {
+            this.layerDraw.viewportTransform[4] += absoluteTo.x - absoluteFrom.x
+            this.layerDraw.viewportTransform[5] += absoluteTo.y - absoluteFrom.y
+            this.layerDraw.requestRenderAll()
+            this.absolutePoint = absoluteTo
+          }
+          break
         case MODE.LINE:
           const line = this.createLine(from, to)
           this.replaceLastObject(line)
@@ -115,10 +132,17 @@ class Board {
     })
 
     canvas.on('mouse:up', options => {
-      if (!this.isCreatingShape) return
+      if (!this.isCreatingShape && !this.isDragging) return
       const from = this.point
       const to = this.getRelativePoint(new fabric.Point(options.e.x, options.e.y))
       switch (this.mode) {
+        case MODE.PANNING:
+          this.isDragging = false
+          this.point.x = 0
+          this.point.y = 0
+          this.absolutePoint.x = 0
+          this.absolutePoint.y = 0
+          break
         case MODE.LINE:
           const line = this.createLine(from, to)
           this.popLastObjectAndAdd(line)
@@ -338,12 +362,22 @@ class Board {
   }
 
   /**
-   * 退出画笔模式
+   * 设置白板的绘制和选择属性
+   * @param {boolean} draw 是否可自由绘制
+   * @param {boolean} boxSelection 是否可框选
+   * @param {boolean} targetSelection 是否可点选
    */
-  stopDrawing() {
-    this.layerDraw.isDrawingMode = false
-    this.layerDraw.skipTargetFind = false
-    this.layerDraw.selection = true
+  setDrawAndSelectionProperties(draw, boxSelection, targetSelection) {
+    this.layerDraw.isDrawingMode = draw
+    this.layerDraw.selection = boxSelection
+    this.layerDraw.skipTargetFind = !targetSelection
+  }
+
+  /**
+   * 进入选择模式
+   */
+  startSelecting() {
+    this.setDrawAndSelectionProperties(false, true, true)
     this.mode = MODE.SELECT
   }
 
@@ -351,7 +385,7 @@ class Board {
    * 进入画笔模式
    */
   startDrawing() {
-    this.layerDraw.isDrawingMode = true
+    this.setDrawAndSelectionProperties(true, false, false)
     this.mode = MODE.DRAWING
   }
 
@@ -359,7 +393,7 @@ class Board {
    * 进入拖拽模式
    */
   startPanning() {
-    this.layerDraw.isDrawingMode = false
+    this.setDrawAndSelectionProperties(false, false, false)
     this.mode = MODE.PANNING
   }
 
@@ -368,9 +402,7 @@ class Board {
    * @param {integer} mode 绘制模式
    */
   drawShape(mode) {
-    this.stopDrawing()
-    this.layerDraw.skipTargetFind = true
-    this.layerDraw.selection = false
+    this.setDrawAndSelectionProperties(false, false, false)
     this.mode = mode
   }
 

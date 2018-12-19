@@ -138,16 +138,44 @@ describe('Board', () => {
   it('can start drawing', () => {
     board.startDrawing()
     board.layerDraw.isDrawingMode.should.equal(true)
+    board.layerDraw.selection.should.equal(false)
+    board.layerDraw.skipTargetFind.should.equal(true)
   })
 
-  it('can stop drawing', () => {
-    board.stopDrawing()
+  it('can start selecting', () => {
+    board.startSelecting()
     board.layerDraw.isDrawingMode.should.equal(false)
+    board.layerDraw.selection.should.equal(true)
+    board.layerDraw.skipTargetFind.should.equal(false)
   })
 
   it('can start panning', () => {
     board.startPanning()
     board.mode.should.equal(MODE.PANNING)
+    board.layerDraw.selection.should.equal(false)
+    board.layerDraw.skipTargetFind.should.equal(true)
+
+    board.layerDraw.fire('mouse:down', {
+      e: {x: 100, y: 100},
+    })
+    board.isDragging.should.equal(true)
+
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 200, y: 200},
+    })
+    board.layerDraw.viewportTransform[4].should.equal(100)
+    board.layerDraw.viewportTransform[5].should.equal(100)
+
+    board.layerDraw.fire('mouse:move', {
+      e: {x: 100, y: 100},
+    })
+    board.layerDraw.viewportTransform[4].should.equal(0)
+    board.layerDraw.viewportTransform[5].should.equal(0)
+
+    board.layerDraw.fire('mouse:up', {
+      e: {x: 300, y: 300},
+    })
+    board.isDragging.should.equal(false)
   })
 
   it('can zoom', () => {
