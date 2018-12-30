@@ -35,7 +35,8 @@
     "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-terser": "^3.0.0",
     "rollup-plugin-uglify": "^6.0.0",
-    "sinon": "^7.1.1"
+    "sinon": "^7.1.1",
+    "sinon-chai": "^3.3.0"
   },
   "files": [
     "dist"

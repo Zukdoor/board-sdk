@@ -1,8 +1,11 @@
 import jsdom from 'jsdom'
 import chai from 'chai'
+import sinon from 'sinon'
+import sinonChai from 'sinon-chai'
 import Board from '../../src/components/Board'
 import {MODE} from '../../src/constants/mode'
 chai.should()
+chai.use(sinonChai)
 
 // Configure JSDOM
 const {JSDOM} = jsdom
@@ -42,8 +45,10 @@ const base64 =
 describe('Board', () => {
   const canvas = document.getElementById('test')
   const board = new Board(canvas)
+  let sandbox
 
   beforeEach(() => {
+    sandbox = sinon.createSandbox()
     board.layerDraw.add(
       new fabric.Line([50, 100, 200, 200], {
         left: 170,
@@ -56,6 +61,7 @@ describe('Board', () => {
   afterEach(() => {
     board.clear()
     board.startDrawing()
+    sandbox.restore()
   })
 
   it('can be cleared', () => {
@@ -84,7 +90,9 @@ describe('Board', () => {
   it('can undo and redo object creation', () => {
     board.undo()
     board.getObjects().length.should.equal(0)
+    const boardHistoryCanMoveSpy = sandbox.spy(board.history, 'canMove')
     board.redo()
+    boardHistoryCanMoveSpy.should.have.been.called
     board.layerDraw._objects[0].aCoords.tl.x.should.equal(170)
   })
 
