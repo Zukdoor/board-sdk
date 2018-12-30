@@ -67,115 +67,185 @@ class Board {
     const canvas = this.layerDraw
 
     canvas.on('object:added', options => {
-      if (
-        this.history.objects.find(object => {
-          return object._id === options.target._id
-        }) !== undefined
-      )
-        return
-      options.target._id = uuid()
-      this.history.addObject(options.target)
+      this._handleObjectAdded(options)
     })
 
     canvas.on('object:modified', options => {
-      this.history.addOperation(options.target)
+      this._handleObjectModified(options)
     })
 
     canvas.on('mouse:down', options => {
-      if (this.mode < MODE.PANNING) return
-      this.absolutePoint = new fabric.Point(options.e.x, options.e.y)
-      this.point = this.getRelativePoint(this.absolutePoint)
-      if (this.mode === MODE.PANNING) {
-        this.isDragging = true
-        return
-      }
-      this.isCreatingShape = true
-      this.layerDraw._objects.push(null)
+      this._handleMouseDown(options)
     })
 
     canvas.on('mouse:move', options => {
-      if (!this.isCreatingShape && !this.isDragging) return
-      const from = this.point
-      const absoluteTo = new fabric.Point(options.e.x, options.e.y)
-      const to = this.getRelativePoint(absoluteTo)
-      switch (this.mode) {
-        case MODE.PANNING:
-          const absoluteFrom = this.absolutePoint
-          if (this.isDragging) {
-            this.layerDraw.viewportTransform[4] += absoluteTo.x - absoluteFrom.x
-            this.layerDraw.viewportTransform[5] += absoluteTo.y - absoluteFrom.y
-            this.layerDraw.requestRenderAll()
-            this.absolutePoint = absoluteTo
-          }
-          break
-        case MODE.LINE:
-          const line = this.createLine(from, to)
-          this.replaceLastObject(line)
-          break
-        case MODE.RECT:
-          const rect = this.createRect(from, to)
-          this.replaceLastObject(rect)
-          break
-        case MODE.SQUARE:
-          const square = this.createRect(from, to)
-          this.replaceLastObject(square)
-          break
-        case MODE.ELLIPSE:
-          const ellipse = this.createEllipse(from, to)
-          this.replaceLastObject(ellipse)
-          break
-        case MODE.CIRCLE:
-          const circle = this.createEllipse(from, to)
-          this.replaceLastObject(circle)
-          break
-      }
+      this._handleMouseMove(options)
     })
 
     canvas.on('mouse:up', options => {
-      if (!this.isCreatingShape && !this.isDragging) return
-      const from = this.point
-      const to = this.getRelativePoint(new fabric.Point(options.e.x, options.e.y))
-      switch (this.mode) {
-        case MODE.PANNING:
-          this.isDragging = false
-          this.point.x = 0
-          this.point.y = 0
-          this.absolutePoint.x = 0
-          this.absolutePoint.y = 0
-          break
-        case MODE.LINE:
-          const line = this.createLine(from, to)
-          this.popLastObjectAndAdd(line)
-          break
-        case MODE.RECT:
-          const rect = this.createRect(from, to)
-          this.popLastObjectAndAdd(rect)
-          break
-        case MODE.SQUARE:
-          const square = this.createRect(from, to)
-          this.popLastObjectAndAdd(square)
-          break
-        case MODE.ELLIPSE:
-          const ellipse = this.createEllipse(from, to)
-          this.popLastObjectAndAdd(ellipse)
-          break
-        case MODE.CIRCLE:
-          const circle = this.createEllipse(from, to)
-          this.popLastObjectAndAdd(circle)
-          break
-      }
+      this._handleMouseUp(options)
     })
 
     canvas.on('mouse:wheel', options => {
-      const delta = options.e.deltaY
-      let zoom = canvas.getZoom()
-      zoom = zoom + delta / 200
-      if (zoom > 2) zoom = 2
-      if (zoom < 0.5) zoom = 0.5
-      canvas.zoomToPoint({x: options.e.offsetX, y: options.e.offsetY}, zoom)
-      options.e.preventDefault()
-      options.e.stopPropagation()
+      this._handleMouseWheel(options)
     })
+  }
+
+  /**
+   * 处理ObjectAdded事件
+   * @param {object} options
+   */
+  _handleObjectAdded(options) {
+    if (
+      this.history.objects.find(object => {
+        return object._id === options.target._id
+      }) !== undefined
+    )
+      return
+    options.target._id = uuid()
+    this.history.addObject(options.target)
+  }
+
+  /**
+   * 处理ObjectModified事件
+   * @param {object} options
+   */
+  _handleObjectModified(options) {
+    this.history.addOperation(options.target)
+  }
+
+  /**
+   * 处理MouseDown事件
+   * @param {object} options
+   */
+  _handleMouseDown(options) {
+    if (this.mode < MODE.PANNING) return
+    this.absolutePoint = new fabric.Point(options.e.x, options.e.y)
+    this.point = this.getRelativePoint(this.absolutePoint)
+    if (this.mode === MODE.PANNING) {
+      this.isDragging = true
+      return
+    }
+    this.isCreatingShape = true
+    this.layerDraw._objects.push(null)
+  }
+
+  /**
+   * 处理MouseMove事件
+   * @param {object} options
+   */
+  _handleMouseMove(options) {
+    if (!this.isCreatingShape && !this.isDragging) return
+    const from = this.point
+    const absoluteTo = new fabric.Point(options.e.x, options.e.y)
+    const to = this.getRelativePoint(absoluteTo)
+    switch (this.mode) {
+      case MODE.PANNING:
+        const absoluteFrom = this.absolutePoint
+        if (this.isDragging) {
+          this.layerDraw.viewportTransform[4] += absoluteTo.x - absoluteFrom.x
+          this.layerDraw.viewportTransform[5] += absoluteTo.y - absoluteFrom.y
+          this.layerDraw.requestRenderAll()
+          this.absolutePoint = absoluteTo
+        }
+        break
+      case MODE.LINE:
+        const line = this.createLine(from, to)
+        this._replaceLastObject(line)
+        break
+      case MODE.RECT:
+        const rect = this.createRect(from, to)
+        this._replaceLastObject(rect)
+        break
+      case MODE.SQUARE:
+        const square = this.createRect(from, to)
+        this._replaceLastObject(square)
+        break
+      case MODE.ELLIPSE:
+        const ellipse = this.createEllipse(from, to)
+        this._replaceLastObject(ellipse)
+        break
+      case MODE.CIRCLE:
+        const circle = this.createEllipse(from, to)
+        this._replaceLastObject(circle)
+        break
+    }
+  }
+
+  /**
+   * 处理MouseUp事件
+   * @param {object} options
+   */
+  _handleMouseUp(options) {
+    if (!this.isCreatingShape && !this.isDragging) return
+    const from = this.point
+    const to = this.getRelativePoint(new fabric.Point(options.e.x, options.e.y))
+    switch (this.mode) {
+      case MODE.PANNING:
+        this.isDragging = false
+        this.point.x = 0
+        this.point.y = 0
+        this.absolutePoint.x = 0
+        this.absolutePoint.y = 0
+        break
+      case MODE.LINE:
+        const line = this.createLine(from, to)
+        this._popLastObjectAndAdd(line)
+        break
+      case MODE.RECT:
+        const rect = this.createRect(from, to)
+        this._popLastObjectAndAdd(rect)
+        break
+      case MODE.SQUARE:
+        const square = this.createRect(from, to)
+        this._popLastObjectAndAdd(square)
+        break
+      case MODE.ELLIPSE:
+        const ellipse = this.createEllipse(from, to)
+        this._popLastObjectAndAdd(ellipse)
+        break
+      case MODE.CIRCLE:
+        const circle = this.createEllipse(from, to)
+        this._popLastObjectAndAdd(circle)
+        break
+    }
+  }
+
+  /**
+   * 处理MouseWheel事件
+   * @param {object} options
+   */
+  _handleMouseWheel(options) {
+    const canvas = this.layerDraw
+    const delta = options.e.deltaY
+    let zoom = canvas.getZoom()
+    zoom = zoom + delta / 200
+    if (zoom > 2) zoom = 2
+    if (zoom < 0.5) zoom = 0.5
+    canvas.zoomToPoint({x: options.e.offsetX, y: options.e.offsetY}, zoom)
+    options.e.preventDefault()
+    options.e.stopPropagation()
+  }
+
+  /**
+   * 替换白板的最后一个对象并渲染，触发object:added事件
+   * @param {fabric.Object} object 用于替换的对象
+   */
+  _popLastObjectAndAdd(object) {
+    this.layerDraw._objects.pop()
+    this.layerDraw.add(object)
+    this.isCreatingShape = false
+    this.point.x = 0
+    this.point.y = 0
+  }
+
+  /**
+   * 替换白板的最后一个对象并渲染，不会触发object:added事件
+   * @param {fabric.Object} object 用于替换的对象
+   */
+  _replaceLastObject(object) {
+    this.layerDraw._objects[this.layerDraw._objects.length - 1] = object
+    this.layerDraw.requestRenderAll()
   }
 
   /**
@@ -216,27 +286,6 @@ class Board {
         skewY: object.skewY,
       }
     })
-  }
-
-  /**
-   * 替换白板的最后一个对象并渲染，不会触发object:added事件
-   * @param {fabric.Object} object 用于替换的对象
-   */
-  replaceLastObject(object) {
-    this.layerDraw._objects[this.layerDraw._objects.length - 1] = object
-    this.layerDraw.requestRenderAll()
-  }
-
-  /**
-   * 替换白板的最后一个对象并渲染，触发object:added事件
-   * @param {fabric.Object} object 用于替换的对象
-   */
-  popLastObjectAndAdd(object) {
-    this.layerDraw._objects.pop()
-    this.layerDraw.add(object)
-    this.isCreatingShape = false
-    this.point.x = 0
-    this.point.y = 0
   }
 
   /**
