@@ -447,4 +447,8 @@ describe('Board', () => {
     board.point.x.should.equal(0)
     board.point.y.should.equal(0)
   })
+
+  it('can insert an image', () => {
+    board.insertImage('http://fabricjs.com/article_assets/2.png', () => board.layerDraw._objects.length.should.equal(2))
+  })
 })

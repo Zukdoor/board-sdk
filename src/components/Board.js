@@ -555,6 +555,22 @@ class Board {
     })
     return ellipse
   }
+
+  /**
+   * 插入图片
+   * @param {string} url 图片的URL地址
+   * @param {funtion} callback 回调函数
+   */
+  insertImage(url, callback) {
+    fabric.Image.fromURL(
+      url,
+      imgObj => {
+        this.layerDraw.add(imgObj)
+        callback
+      },
+      {crossOrigin: 'anonymous'},
+    )
+  }
 }
 
 export default Board

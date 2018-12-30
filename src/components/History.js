@@ -41,24 +41,9 @@ class History {
       })
       const lastObject = object.states[object.currentStateNumber] || null
       const newObject = object.states[object.currentStateNumber + step] || null
-      let clonedNewObject
-      if (newObject !== null) {
-        newObject.clone(
-          cloned => {
-            clonedNewObject = cloned
-          },
-          ['_id'],
-        )
-      }
-      object.currentStateNumber += step
 
       // 分别处理不同情况
-      // [情况一]当前状态为空，此时需要重新插入这一对象
-      if (lastObject === null) {
-        canvas.add(clonedNewObject)
-      }
-
-      // [情况二]新状态为空，此时需要删除这一对象
+      // [情况一]新状态为空，此时需要删除这一对象
       if (newObject === null) {
         canvas._objects.splice(
           canvas._objects.findIndex(object => {
@@ -68,16 +53,32 @@ class History {
         )
       }
 
-      // [情况三]当前状态和新状态均不为空，此时需要删除再插入
-      if (lastObject !== null && newObject !== null) {
-        canvas._objects.splice(
-          canvas._objects.findIndex(object => {
-            return object._id === lastObject._id
-          }),
-          1,
+      let clonedNewObject
+      if (newObject !== null) {
+        newObject.clone(
+          cloned => {
+            clonedNewObject = cloned
+            // [情况二]当前状态为空，此时需要重新插入这一对象
+            if (lastObject === null) {
+              canvas.add(clonedNewObject)
+            }
+
+            // [情况三]当前状态和新状态均不为空，此时需要删除再插入
+            if (lastObject !== null && newObject !== null) {
+              canvas._objects.splice(
+                canvas._objects.findIndex(object => {
+                  return object._id === lastObject._id
+                }),
+                1,
+              )
+              canvas.add(clonedNewObject)
+            }
+          },
+          ['_id'],
         )
-        canvas.add(clonedNewObject)
       }
+
+      object.currentStateNumber += step
     })
 
     // 取消当前选中区域
@@ -97,16 +98,16 @@ class History {
     object.clone(
       cloned => {
         initialState = cloned
+        this.objects.push({
+          states: [initialState],
+          currentStateNumber: 0,
+          _id: object._id,
+        })
+        this.operations.push([object._id])
+        this.currentOperationNumber++
       },
       ['_id'],
     )
-    this.objects.push({
-      states: [initialState],
-      currentStateNumber: 0,
-      _id: object._id,
-    })
-    this.operations.push([object._id])
-    this.currentOperationNumber++
   }
 
   /**
@@ -144,11 +145,11 @@ class History {
         object.clone(
           cloned => {
             newState = cloned
+            target.states.push(newState)
+            target.currentStateNumber++
           },
           ['_id'],
         )
-        target.states.push(newState)
-        target.currentStateNumber++
       }
 
       // 否则为多对象操作
@@ -166,22 +167,23 @@ class History {
           obj.clone(
             cloned => {
               newState = cloned
+              // 因为同时编辑多个object时，每个object的top和left数值是根据group的变换矩阵进行计算的，
+              // 所以这里需要反变换来得到object相对canvas的top和left数值
+              const transformMatrix = object.hasOwnProperty('matrixCache')
+                ? object.matrixCache.value
+                : [1, 0, 0, 1, 0, 0]
+              const newPoint = fabric.util.transformPoint({x: newState.left, y: newState.top}, transformMatrix)
+              newState.left = newPoint.x
+              newState.top = newPoint.y
+              newState.angle += object.angle
+              newState.scaleX *= object.scaleX
+              newState.scaleY *= object.scaleY
+              newState.setCoords()
+              target.states.push(newState)
+              target.currentStateNumber++
             },
             ['_id'],
           )
-
-          // 因为同时编辑多个object时，每个object的top和left数值是根据group的变换矩阵进行计算的，
-          // 所以这里需要反变换来得到object相对canvas的top和left数值
-          const transformMatrix = object.hasOwnProperty('matrixCache') ? object.matrixCache.value : [1, 0, 0, 1, 0, 0]
-          const newPoint = fabric.util.transformPoint({x: newState.left, y: newState.top}, transformMatrix)
-          newState.left = newPoint.x
-          newState.top = newPoint.y
-          newState.angle += object.angle
-          newState.scaleX *= object.scaleX
-          newState.scaleY *= object.scaleY
-          newState.setCoords()
-          target.states.push(newState)
-          target.currentStateNumber++
         })
       }
     }
